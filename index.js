@@ -2,8 +2,18 @@ const express = require('express')
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+const recognitionAttemptRoute = require('./routes/RecognitionAttempt');
+
 const app = express()
 const port = process.env.PORT || 3000
+mongoose.set("strictQuery", true);
+
+// middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// routes
+app.use('/api/RecognitionAttempt', recognitionAttemptRoute);
 
 // connect to mongodb atlas
 mongoose
