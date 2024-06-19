@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const RecognitionAttempt = require('../models/RecognitionAttempt');
+const { openDoor } = require('../index');
 
 // GET ALL RECOGNITION ATTEMPT
 router.post('/PostNewRecognitionAttempt', async (req, res) => {
@@ -20,6 +21,12 @@ router.post('/PostNewRecognitionAttempt', async (req, res) => {
 router.get('/GetAllRecognitionAttempts', async (req, res) => {
     const response = await RecognitionAttempt.find();
     res.status(200).json(response);
+});
+
+// OPEN DOOR
+router.post('/OpenDoor', async (req, res) => {
+    openDoor();
+    res.status(200).json({ message: 'Door opened via MQTT' });
 });
 
 module.exports = router;

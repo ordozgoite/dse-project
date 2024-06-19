@@ -38,6 +38,23 @@ client.on('message', (topic, message) => {
 //     console.log('Função executada em resposta à mensagem específica');
 // }
 
+function openDoor() {
+  const topic = 'dse/open';
+  const message = 'open';
+
+  client.publish(topic, message, (err) => {
+      if (err) {
+          console.error('Failed to publish message:', err);
+      } else {
+          console.log(`Message '${message}' sent to topic '${topic}'`);
+      }
+  });
+}
+
+module.exports = {
+  openDoor
+};
+
 const recognitionAttemptRoute = require('./routes/RecognitionAttempt');
 
 const app = express()
