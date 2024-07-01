@@ -3,51 +3,60 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const mqtt = require('mqtt');
 
+const RecognitionAttempt = require('./models/RecognitionAttempt');
+
 // URL do broker MQTT com TLS
 const brokerUrl = 'mqtts://ecd8950746cc4cbe99f19f8a4d3a2f23.s1.eu.hivemq.cloud:8883';
 const options = {
-    username: process.env.MQTT_USERNAME,
-    password: process.env.MQTT_PASSWORD
+  username: process.env.MQTT_USERNAME,
+  password: process.env.MQTT_PASSWORD
 };
 
 // Conectar ao broker
 const client = mqtt.connect(brokerUrl, options);
 
 client.on('connect', () => {
-    console.log('Connected to MQTT broker');
+  console.log('Connected to MQTT broker');
 
-    // Inscrever-se em um tópico específico
-    client.subscribe('dse/register', (err) => {
-        if (!err) {
-            console.log('Subscribed to topic');
-        }
-    });
+  // Inscrever-se em um tópico específico
+  client.subscribe('dse/register', (err) => {
+    if (!err) {
+      console.log('Subscribed to topic');
+    }
+  });
 });
 
 client.on('message', (topic, message) => {
-    const msg = message.toString();
+  const msg = message.toString();
 
-    console.log(`Received message: ${msg} on topic: ${topic}`);
-
-    // if (msg === 'mensagem_especifica') {
-    //     suaFuncao();
-    // }
+  console.log(`Received message: ${msg} on topic: ${topic}`);
+  PostNewRecognitionAttempt()
 });
 
-// function suaFuncao() {
-//     console.log('Função executada em resposta à mensagem específica');
-// }
+async function PostNewRecognitionAttempt(result, username) {
+  const now = new Date();
+
+  const newAttempt = new RecognitionAttempt({
+    timestamp: now.getTime(),
+    result: result,
+    username: username
+  });
+
+  // send notification
+
+  await newChat.save();
+}
 
 function openDoor() {
   const topic = 'dse/open';
   const message = 'open';
 
   client.publish(topic, message, (err) => {
-      if (err) {
-          console.error('Failed to publish message:', err);
-      } else {
-          console.log(`Message '${message}' sent to topic '${topic}'`);
-      }
+    if (err) {
+      console.error('Failed to publish message:', err);
+    } else {
+      console.log(`Message '${message}' sent to topic '${topic}'`);
+    }
   });
 }
 
