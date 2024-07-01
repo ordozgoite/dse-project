@@ -2,8 +2,44 @@ const express = require('express')
 const mongoose = require('mongoose');
 require('dotenv').config();
 const mqtt = require('mqtt');
-
+const admin = require('firebase-admin');
 const RecognitionAttempt = require('./models/RecognitionAttempt');
+
+const serviceAccount = require('./dee-project-d1017-firebase-adminsdk-mg1jm-af073350a1.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+// async function sendMockMessage() {
+//   const message = {
+//     notification: {
+//         title: "Título",
+//         body: "Corpo"
+//     },
+//     apns: {
+//         headers: {
+//             'apns-priority': '10',
+//         },
+//         payload: {
+//             aps: {
+//                 sound: 'default',
+//             }
+//         },
+//     },
+//     token: "esRDji5INk9jgWvepgp3z8:APA91bHW-xxp6-3dav-LdpY_3LTL4kFwkqeUgNUzvQPFaQbkJ7VtLj4rLYZY7M0eMGNcYNUxXE2LslzOpoCqS6P2tRvWdVERlFB5fCjdM20afCyWLKoAysPtOAPx7nN8yMW4dupIRuYk"
+// };
+
+// admin.messaging().send(message)
+//     .then((response) => {
+//         console.log('Successfully sent message:', response);
+//     })
+//     .catch((error) => {
+//         console.log('Error sending message:', error);
+//     });
+// }
+
+// sendMockMessage();
 
 // URL do broker MQTT com TLS
 const brokerUrl = 'mqtts://ecd8950746cc4cbe99f19f8a4d3a2f23.s1.eu.hivemq.cloud:8883';
@@ -42,9 +78,39 @@ async function PostNewRecognitionAttempt(result, username) {
     username: username
   });
 
-  // send notification
+  const title = result == "allowed" ? "✅ Porta Aberta" : "⚠️ Alerta!"
+  const body = username != null ? username + " acabou de chegar" : "Um desconhecido tentou entrar"
+  sendPushNotification(title, body); 
 
-  await newChat.save();
+  await newAttempt.save();
+}
+
+async function sendPushNotification(title, body) {
+  const message = {
+    notification: {
+        title: title,
+        body: body
+    },
+    apns: {
+        headers: {
+            'apns-priority': '10',
+        },
+        payload: {
+            aps: {
+                sound: 'default',
+            }
+        },
+    },
+    token: "esRDji5INk9jgWvepgp3z8:APA91bHW-xxp6-3dav-LdpY_3LTL4kFwkqeUgNUzvQPFaQbkJ7VtLj4rLYZY7M0eMGNcYNUxXE2LslzOpoCqS6P2tRvWdVERlFB5fCjdM20afCyWLKoAysPtOAPx7nN8yMW4dupIRuYk"
+};
+
+admin.messaging().send(message)
+    .then((response) => {
+        console.log('Successfully sent message:', response);
+    })
+    .catch((error) => {
+        console.log('Error sending message:', error);
+    });
 }
 
 function openDoor() {
